@@ -54,6 +54,10 @@
     ReduxMixin = PolymerRedux(store);
 
     function navigate(page) {
-        return {type: NAVIGATE_TYPE, page: page}
+        return {type: NAVIGATE_TYPE, page: page};
+    }
+
+    function navigate404() {
+        return {type: NAVIGATE_404_TYPE};
     }
 </script>
