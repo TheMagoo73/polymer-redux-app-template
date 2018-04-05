@@ -16,9 +16,10 @@
     const reducer = (state, action) => {
         switch(action.type) {
             case NAVIGATE_TYPE:
-                // Ensure one, and only one page is marked as selected
                 let newPage;
 
+                // if no page is passed, navigate to the home page is one is defined, or the
+                // first page in the array if there is no home page
                 if(!action.page) {
                     homePage = state.pages.find(p => p.isHome == true) || state.pages[0];
                     newPage = homePage.page;
@@ -26,17 +27,15 @@
                 else {
                     newPage = action.page;
                 }
-                newState = Object.assign({}, state);
-                newState.pages.forEach(p=>{
-                    if(p.page == newPage) {
-                        p.selected = true;
-                    }
-                    else {
-                        p.selected = false;
-                    }
-                }) 
 
-                //If no page is selected, select the 404 or home
+                // Mark the requested page as selected if it's in the pages array
+                newState = Object.assign({}, state, {pages: state.pages.map(p => {
+                    p.selected = p.page == newPage ? true : false;
+                    return p;
+                })});
+
+                //If the requested page couldn't be found, select the 404 page if one is defined,
+                //or the first page in the array if there isn't
                 if(!newState.pages.find(p => p.selected))
                 {
                     page404 = newState.pages.find(p => p.is404) || newState.pages[0];
@@ -53,11 +52,9 @@
 
     ReduxMixin = PolymerRedux(store);
 
+    // Action creator for the navigate action
     function navigate(page) {
         return {type: NAVIGATE_TYPE, page: page};
     }
 
-    function navigate404() {
-        return {type: NAVIGATE_404_TYPE};
-    }
 </script>
