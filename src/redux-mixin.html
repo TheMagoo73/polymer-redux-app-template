@@ -1,0 +1,59 @@
+<link rel="import" href="../bower_components/polymer-redux/polymer-redux.html">
+<script src="../node_modules/redux/dist/redux.js"></script>
+
+<script>
+
+    const NAVIGATE_TYPE = "NAVIGATE";
+
+    const initial = {
+        pages: [
+            {page: "view1", url: "my-view1.html", menu: "rView One", isHome: true, selected: true},
+            {page: "view2", url: "my-view2.html", menu: "rView Two"},
+            {page: "view3", url: "my-view3.html", menu: "rView Three"},
+            {page: "404", url: "my-view404.html", is404: true}
+        ]
+    };
+    const reducer = (state, action) => {
+        switch(action.type) {
+            case NAVIGATE_TYPE:
+                // Ensure one, and only one page is marked as selected
+                let newPage;
+
+                if(!action.page) {
+                    homePage = state.pages.find(p => p.isHome == true) || state.pages[0];
+                    newPage = homePage.page;
+                }
+                else {
+                    newPage = action.page;
+                }
+                newState = Object.assign({}, state);
+                newState.pages.forEach(p=>{
+                    if(p.page == newPage) {
+                        p.selected = true;
+                    }
+                    else {
+                        p.selected = false;
+                    }
+                }) 
+
+                //If no page is selected, select the 404 or home
+                if(!newState.pages.find(p => p.selected))
+                {
+                    page404 = newState.pages.find(p => p.is404) || newState.pages[0];
+                    page404.selected = true;
+                }
+                
+                return newState;
+            default:
+                return state;
+        }
+    }
+
+    const store = Redux.createStore(reducer, initial);
+
+    ReduxMixin = PolymerRedux(store);
+
+    function navigate(page) {
+        return {type: NAVIGATE_TYPE, page: page}
+    }
+</script>

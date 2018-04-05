@@ -22,6 +22,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
+<link rel="import" href="redux-mixin.html">
+
 <link rel="lazy-import" href="my-view1.html">
 <link rel="lazy-import" href="my-view2.html">
 <link rel="lazy-import" href="my-view3.html">
@@ -121,24 +123,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // preventable, allowing for better scrolling performance.
     Polymer.setPassiveTouchGestures(true);
 
-    class MyApp extends Polymer.Element {
+    class MyApp extends ReduxMixin(Polymer.Element) {
       static get is() { return 'my-app'; }
 
       static get properties() {
         return {
-          page: {
-            type: String,
-            reflectToAttribute: true,
-            observer: '_pageChanged',
-          },
           pages: {
             type: Array,
-            value: [
-              {page: "view1", url: "my-view1.html", menu: "View One", isHome: true},
-              {page: "view2", url: "my-view2.html", menu: "View Two"},
-              {page: "view3", url: "my-view3.html", menu: "View Three"},
-              {page: "404", url: "my-view404.html", is404: true}
-            ]
+            statePath: 'pages'
+          },
+          page: {
+            type: String,
+            statePath(state) {
+              return state.pages.find(p => p.selected).page;
+            },
+            observer: '_pageChanged',
           },
           routeData: Object,
           subroute: Object,
@@ -155,16 +154,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _routePageChanged(page) {
-        // If no page was found in the route data, page will be an empty string.
-        // In that case find the isHome page, or if there isn't one go to the first
-        // page in the pages array.
-        if(page) {
-          this.page = page;
-        }
-        else {
-          const homePage = this.pages.find(p => p.isHome) || this.pages[0];
-          this.page = homePage.page;
-        }
+        //Tell Redux about the page change
+        this.dispatch(navigate(page));
 
         // Close a non-persistent drawer when the page & route are changed.
         if (!this.$.drawer.persistent) {
@@ -175,7 +166,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       isMenuItem(item) {
         return item.menu;
       }
-      
+
       _pageChanged(page) {
         // Load page import on demand. Show 404 page if fails
         const newPage = this.pages.find(p => p.page == page);
